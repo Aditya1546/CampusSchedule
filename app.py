@@ -79,9 +79,13 @@ def get_schedule():
     return rows
     
     
-def has_clash(day, start_time, end_time, room):
+def has_clash(day, start_time, end_time, room, exclude_id=None):
     schedule = get_schedule()
+
     for item in schedule:
+        if exclude_id is not None and item["id"] == exclude_id:
+            continue
+
         if item["day"] != day or item["room"] != room:
             continue
 
@@ -98,6 +102,85 @@ def home():
     schedule = get_schedule()
     return render_template("index.html", schedule=schedule)
 
+@app.route("/edit/<int:schedule_id>", methods=["GET", "POST"])
+def edit_schedule(schedule_id):
+    connection = sqlite3.connect("schedule.db")
+    connection.row_factory = sqlite3.Row
+
+    item = connection.execute(
+        "SELECT * FROM schedule WHERE id = ?",
+        (schedule_id,),
+    ).fetchone()
+
+    if item is None:
+        connection.close()
+        return "Schedule entry not found.", 404
+
+    if request.method == "POST":
+        subject = request.form.get("subject", "").strip()
+        day = request.form.get("day", "").strip()
+        start = request.form.get("start", "").strip()
+        end = request.form.get("end", "").strip()
+        room = request.form.get("room", "").strip()
+
+        if not subject or not day or not start or not end or not room:
+            connection.close()
+            return render_template(
+                "edit.html",
+                item=item,
+                result="All fields are required.",
+            ), 400
+
+        try:
+            start_time = datetime.strptime(start, "%H:%M")
+            end_time = datetime.strptime(end, "%H:%M")
+        except ValueError:
+            connection.close()
+            return render_template(
+                "edit.html",
+                item=item,
+                result="Invalid time format.",
+            ), 400
+
+        if start_time >= end_time:
+            connection.close()
+            return render_template(
+                "edit.html",
+                item=item,
+                result="Start time must be before end time.",
+            ), 400
+
+        if has_clash(
+            day,
+            start_time,
+            end_time,
+            room,
+            exclude_id=schedule_id,
+        ):
+            connection.close()
+            return render_template(
+                "edit.html",
+                item=item,
+                result="Room clash detected.",
+            ), 409
+
+        connection.execute(
+            """
+            UPDATE schedule
+            SET subject = ?, day = ?, start = ?, end = ?, room = ?
+            WHERE id = ?
+            """,
+            (subject, day, start, end, room, schedule_id),
+        )
+
+        connection.commit()
+        connection.close()
+
+        return redirect("/")
+
+    connection.close()
+
+    return render_template("edit.html", item=item)
 
 @app.route("/availability", methods=["GET", "POST"])
 def availability():

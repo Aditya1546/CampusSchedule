@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Schedule - CampusSchedule</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <header>
+        <div class="container">
+            <div>
+                <div class="logo">CampusSchedule</div>
+                <div class="subtitle">
+                    Timetable & Room Management
+                </div>
+            </div>
+
+            <nav>
+                <a href="/">Schedule</a>
+                <a href="/availability">Room Availability</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+
+            <div class="card">
+                <h1>Edit Timetable Entry</h1>
+                <p>Update the details of this schedule entry.</p>
+            </div>
+
+            <div class="card">
+
+                <form method="POST">
+
+                    <label for="subject">Subject</label>
+                    <input
+                        type="text"
+                        id="subject"
+                        name="subject"
+                        value="{{ item['subject'] }}"
+                        required
+                    >
+
+                    <label for="day">Day</label>
+                    <select id="day" name="day" required>
+                        <option value="Monday"
+                            {% if item['day'] == 'Monday' %}selected{% endif %}>
+                            Monday
+                        </option>
+                        <option value="Tuesday"
+                            {% if item['day'] == 'Tuesday' %}selected{% endif %}>
+                            Tuesday
+                        </option>
+                        <option value="Wednesday"
+                            {% if item['day'] == 'Wednesday' %}selected{% endif %}>
+                            Wednesday
+                        </option>
+                        <option value="Thursday"
+                            {% if item['day'] == 'Thursday' %}selected{% endif %}>
+                            Thursday
+                        </option>
+                        <option value="Friday"
+                            {% if item['day'] == 'Friday' %}selected{% endif %}>
+                            Friday
+                        </option>
+                        <option value="Saturday"
+                            {% if item['day'] == 'Saturday' %}selected{% endif %}>
+                            Saturday
+                        </option>
+                    </select>
+
+                    <label for="start">Start Time</label>
+                    <input
+                        type="time"
+                        id="start"
+                        name="start"
+                        value="{{ item['start'] }}"
+                        required
+                    >
+
+                    <label for="end">End Time</label>
+                    <input
+                        type="time"
+                        id="end"
+                        name="end"
+                        value="{{ item['end'] }}"
+                        required
+                    >
+
+                    <label for="room">Room</label>
+                    <input
+                        type="text"
+                        id="room"
+                        name="room"
+                        value="{{ item['room'] }}"
+                        required
+                    >
+
+                    <button type="submit">Save Changes</button>
+
+                </form>
+                {% if result %}
+                    <p>{{ result }}</p>
+                {% endif %}
+
+                <br>
+
+                <a href="/" class="button-link">Back to Schedule</a>
+
+            </div>
+
+        </div>
+    </main>
+
+    <footer>
+        CampusSchedule · Timetable Clash Checker & Room Availability
+    </footer>
+
+</body>
+</html>
