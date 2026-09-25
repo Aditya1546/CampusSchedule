@@ -3,41 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Schedule - CampusSchedule</title>
+
+    <title>Edit Schedule · CampusSchedule</title>
+
+    <script>
+        const savedTheme = localStorage.getItem("theme");
+
+        if (savedTheme === "dark") {
+            document.documentElement.setAttribute("data-theme", "dark");
+        }
+    </script>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 
 <body>
 
-    <header>
-        <div class="container">
-            <div>
-                <div class="logo">CampusSchedule</div>
-                <div class="subtitle">
-                    Timetable & Room Management
-                </div>
-            </div>
+<header class="site-header">
+    <div class="container header-content">
 
-            <nav>
-                <a href="/">Schedule</a>
-                <a href="/availability">Room Availability</a>
-            </nav>
+        <div>
+            <h1 class="logo">CampusSchedule</h1>
+            <p class="subtitle">Timetable & Room Management</p>
         </div>
-    </header>
 
-    <main>
-        <div class="container">
+        <nav class="nav-links">
+            <a href="{{ url_for('home') }}">
+                Schedule
+            </a>
 
-            <div class="card">
-                <h1>Edit Timetable Entry</h1>
-                <p>Update the details of this schedule entry.</p>
+            <a href="{{ url_for('availability') }}">
+                Room Availability
+            </a>
+
+            <button class="theme-toggle" id="themeToggle" type="button">
+                ◐ Theme
+            </button>
+        </nav>
+
+    </div>
+</header>
+
+
+<main class="container">
+
+    <section class="page-intro">
+        <div>
+            <p class="eyebrow">Timetable Management</p>
+            <h2>Edit Schedule Entry</h2>
+            <p>
+                Update the details of this timetable entry.
+            </p>
+        </div>
+    </section>
+
+
+    <section class="card">
+
+        <div class="card-header">
+            <div>
+                <h3>Schedule Details</h3>
+                <p>Modify the information and save your changes.</p>
             </div>
+        </div>
 
-            <div class="card">
+        {% if result %}
+        <div class="alert alert-error">
+            <strong>Unable to save changes</strong>
+            <span>{{ result }}</span>
+        </div>
+        {% endif %}
 
-                <form method="POST">
 
+        <form
+            action="{{ url_for('edit_schedule', schedule_id=item['id']) }}"
+            method="POST"
+        >
+
+            <div class="form-grid">
+
+                <div class="form-group">
                     <label for="subject">Subject</label>
                     <input
                         type="text"
@@ -46,36 +91,56 @@
                         value="{{ item['subject'] }}"
                         required
                     >
+                </div>
 
+
+                <div class="form-group">
                     <label for="day">Day</label>
+
                     <select id="day" name="day" required>
+                        <option value="">Select day</option>
+
                         <option value="Monday"
                             {% if item['day'] == 'Monday' %}selected{% endif %}>
                             Monday
                         </option>
+
                         <option value="Tuesday"
                             {% if item['day'] == 'Tuesday' %}selected{% endif %}>
                             Tuesday
                         </option>
+
                         <option value="Wednesday"
                             {% if item['day'] == 'Wednesday' %}selected{% endif %}>
                             Wednesday
                         </option>
+
                         <option value="Thursday"
                             {% if item['day'] == 'Thursday' %}selected{% endif %}>
                             Thursday
                         </option>
+
                         <option value="Friday"
                             {% if item['day'] == 'Friday' %}selected{% endif %}>
                             Friday
                         </option>
+
                         <option value="Saturday"
                             {% if item['day'] == 'Saturday' %}selected{% endif %}>
                             Saturday
                         </option>
-                    </select>
 
+                        <option value="Sunday"
+                            {% if item['day'] == 'Sunday' %}selected{% endif %}>
+                            Sunday
+                        </option>
+                    </select>
+                </div>
+
+
+                <div class="form-group">
                     <label for="start">Start Time</label>
+
                     <input
                         type="time"
                         id="start"
@@ -83,8 +148,12 @@
                         value="{{ item['start'] }}"
                         required
                     >
+                </div>
 
+
+                <div class="form-group">
                     <label for="end">End Time</label>
+
                     <input
                         type="time"
                         id="end"
@@ -92,8 +161,12 @@
                         value="{{ item['end'] }}"
                         required
                     >
+                </div>
 
+
+                <div class="form-group">
                     <label for="room">Room</label>
+
                     <input
                         type="text"
                         id="room"
@@ -101,26 +174,36 @@
                         value="{{ item['room'] }}"
                         required
                     >
-
-                    <button type="submit">Save Changes</button>
-
-                </form>
-                {% if result %}
-                    <p>{{ result }}</p>
-                {% endif %}
-
-                <br>
-
-                <a href="/" class="button-link">Back to Schedule</a>
+                </div>
 
             </div>
 
-        </div>
-    </main>
 
-    <footer>
+            <div class="actions">
+                <button type="submit" class="button-primary">
+                    Save Changes
+                </button>
+
+                <a href="{{ url_for('home') }}" class="button-link">
+                    Cancel
+                </a>
+            </div>
+
+        </form>
+
+    </section>
+
+</main>
+
+
+<footer class="site-footer">
+    <div class="container">
         CampusSchedule · Timetable Clash Checker & Room Availability
-    </footer>
+    </div>
+</footer>
+
+
+<script src="{{ url_for('static', filename='theme.js') }}"></script>
 
 </body>
 </html>
