@@ -108,6 +108,10 @@ def api_schedule():
 
     return jsonify([dict(item) for item in schedule])
 
+@app.route("/health")
+def health():
+    return {"status": "ok"}
+
 @app.route("/edit/<int:schedule_id>", methods=["GET", "POST"])
 def edit_schedule(schedule_id):
     connection = sqlite3.connect("schedule.db")
