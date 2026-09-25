@@ -1,7 +1,5 @@
 import pytest
-
 import app as app_module
-
 
 @pytest.fixture
 def client(tmp_path, monkeypatch):

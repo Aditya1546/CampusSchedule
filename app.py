@@ -33,8 +33,7 @@ schedule = [
 def init_db():
     connection = sqlite3.connect(DATABASE)
 
-    connection.execute(
-        """
+    connection.execute("""
         CREATE TABLE IF NOT EXISTS schedule (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             subject TEXT NOT NULL,
@@ -43,12 +42,9 @@ def init_db():
             end TEXT NOT NULL,
             room TEXT NOT NULL
         )
-        """
-    )
+        """)
 
-    count = connection.execute(
-        "SELECT COUNT(*) FROM schedule"
-    ).fetchone()[0]
+    count = connection.execute("SELECT COUNT(*) FROM schedule").fetchone()[0]
 
     if count == 0:
         for item in schedule:
@@ -74,9 +70,7 @@ def get_schedule():
     connection = sqlite3.connect(DATABASE)
     connection.row_factory = sqlite3.Row
 
-    rows = connection.execute(
-        "SELECT * FROM schedule ORDER BY day, start"
-    ).fetchall()
+    rows = connection.execute("SELECT * FROM schedule ORDER BY day, start").fetchall()
 
     connection.close()
     return rows
@@ -142,30 +136,39 @@ def edit_schedule(schedule_id):
 
         if not subject or not day or not start or not end or not room:
             connection.close()
-            return render_template(
-                "edit.html",
-                item=item,
-                result="All fields are required.",
-            ), 400
+            return (
+                render_template(
+                    "edit.html",
+                    item=item,
+                    result="All fields are required.",
+                ),
+                400,
+            )
 
         try:
             start_time = datetime.strptime(start, "%H:%M")
             end_time = datetime.strptime(end, "%H:%M")
         except ValueError:
             connection.close()
-            return render_template(
-                "edit.html",
-                item=item,
-                result="Invalid time format.",
-            ), 400
+            return (
+                render_template(
+                    "edit.html",
+                    item=item,
+                    result="Invalid time format.",
+                ),
+                400,
+            )
 
         if start_time >= end_time:
             connection.close()
-            return render_template(
-                "edit.html",
-                item=item,
-                result="Start time must be before end time.",
-            ), 400
+            return (
+                render_template(
+                    "edit.html",
+                    item=item,
+                    result="Start time must be before end time.",
+                ),
+                400,
+            )
 
         if has_clash(
             day,
@@ -175,11 +178,14 @@ def edit_schedule(schedule_id):
             exclude_id=schedule_id,
         ):
             connection.close()
-            return render_template(
-                "edit.html",
-                item=item,
-                result="Room clash detected.",
-            ), 409
+            return (
+                render_template(
+                    "edit.html",
+                    item=item,
+                    result="Room clash detected.",
+                ),
+                409,
+            )
 
         connection.execute(
             """
@@ -270,7 +276,7 @@ def add_schedule():
         return render_template(
             "index.html",
             schedule=get_schedule(),
-            error="Room clash detected. This room is already occupied during that time."
+            error="Room clash detected. This room is already occupied during that time.",
         )
 
     connection = sqlite3.connect(DATABASE)
