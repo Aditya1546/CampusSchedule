@@ -1,6 +1,6 @@
 import sqlite3
 from datetime import datetime
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, jsonify
 
 app = Flask(__name__)
 
@@ -101,6 +101,12 @@ def has_clash(day, start_time, end_time, room, exclude_id=None):
 def home():
     schedule = get_schedule()
     return render_template("index.html", schedule=schedule)
+
+@app.route("/api/schedule")
+def api_schedule():
+    schedule = get_schedule()
+
+    return jsonify([dict(item) for item in schedule])
 
 @app.route("/edit/<int:schedule_id>", methods=["GET", "POST"])
 def edit_schedule(schedule_id):
