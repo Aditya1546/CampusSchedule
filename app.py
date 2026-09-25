@@ -182,6 +182,23 @@ def edit_schedule(schedule_id):
 
     return render_template("edit.html", item=item)
 
+@app.route("/delete/<int:schedule_id>", methods=["POST"])
+def delete_schedule(schedule_id):
+    connection = sqlite3.connect("schedule.db")
+
+    result = connection.execute(
+        "DELETE FROM schedule WHERE id = ?",
+        (schedule_id,),
+    )
+
+    connection.commit()
+    connection.close()
+
+    if result.rowcount == 0:
+        return "Schedule entry not found.", 404
+
+    return redirect("/")
+
 @app.route("/availability", methods=["GET", "POST"])
 def availability():
     result = None
