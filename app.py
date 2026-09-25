@@ -248,7 +248,11 @@ def add_schedule():
         return "Start time must be before end time.", 400
     
     if has_clash(day, start_time, end_time, room):
-        return "Room clash detected.", 409
+        return render_template(
+            "index.html",
+            schedule=get_schedule(),
+            error="Room clash detected. This room is already occupied during that time."
+        )
 
     connection = sqlite3.connect("schedule.db")
 
