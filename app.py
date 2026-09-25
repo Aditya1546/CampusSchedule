@@ -3,6 +3,7 @@ from datetime import datetime
 from flask import Flask, render_template, request, redirect, jsonify
 
 app = Flask(__name__)
+DATABASE = "schedule.db"
 
 schedule = [
     {
@@ -28,11 +29,11 @@ schedule = [
     },
 ]
 
-def init_db():
-    connection = sqlite3.connect("schedule.db")
 
-    connection.execute(
-        """
+def init_db():
+    connection = sqlite3.connect(DATABASE)
+
+    connection.execute("""
         CREATE TABLE IF NOT EXISTS schedule (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             subject TEXT NOT NULL,
@@ -41,12 +42,9 @@ def init_db():
             end TEXT NOT NULL,
             room TEXT NOT NULL
         )
-        """
-    )
+        """)
 
-    count = connection.execute(
-        "SELECT COUNT(*) FROM schedule"
-    ).fetchone()[0]
+    count = connection.execute("SELECT COUNT(*) FROM schedule").fetchone()[0]
 
     if count == 0:
         for item in schedule:
@@ -66,19 +64,18 @@ def init_db():
 
     connection.commit()
     connection.close()
-    
+
+
 def get_schedule():
-    connection = sqlite3.connect("schedule.db")
+    connection = sqlite3.connect(DATABASE)
     connection.row_factory = sqlite3.Row
 
-    rows = connection.execute(
-        "SELECT * FROM schedule ORDER BY day, start"
-    ).fetchall()
+    rows = connection.execute("SELECT * FROM schedule ORDER BY day, start").fetchall()
 
     connection.close()
     return rows
-    
-    
+
+
 def has_clash(day, start_time, end_time, room, exclude_id=None):
     schedule = get_schedule()
 
@@ -97,10 +94,12 @@ def has_clash(day, start_time, end_time, room, exclude_id=None):
 
     return False
 
+
 @app.route("/")
 def home():
     schedule = get_schedule()
     return render_template("index.html", schedule=schedule)
+
 
 @app.route("/api/schedule")
 def api_schedule():
@@ -108,13 +107,15 @@ def api_schedule():
 
     return jsonify([dict(item) for item in schedule])
 
+
 @app.route("/health")
 def health():
     return {"status": "ok"}
 
+
 @app.route("/edit/<int:schedule_id>", methods=["GET", "POST"])
 def edit_schedule(schedule_id):
-    connection = sqlite3.connect("schedule.db")
+    connection = sqlite3.connect(DATABASE)
     connection.row_factory = sqlite3.Row
 
     item = connection.execute(
@@ -135,30 +136,39 @@ def edit_schedule(schedule_id):
 
         if not subject or not day or not start or not end or not room:
             connection.close()
-            return render_template(
-                "edit.html",
-                item=item,
-                result="All fields are required.",
-            ), 400
+            return (
+                render_template(
+                    "edit.html",
+                    item=item,
+                    result="All fields are required.",
+                ),
+                400,
+            )
 
         try:
             start_time = datetime.strptime(start, "%H:%M")
             end_time = datetime.strptime(end, "%H:%M")
         except ValueError:
             connection.close()
-            return render_template(
-                "edit.html",
-                item=item,
-                result="Invalid time format.",
-            ), 400
+            return (
+                render_template(
+                    "edit.html",
+                    item=item,
+                    result="Invalid time format.",
+                ),
+                400,
+            )
 
         if start_time >= end_time:
             connection.close()
-            return render_template(
-                "edit.html",
-                item=item,
-                result="Start time must be before end time.",
-            ), 400
+            return (
+                render_template(
+                    "edit.html",
+                    item=item,
+                    result="Start time must be before end time.",
+                ),
+                400,
+            )
 
         if has_clash(
             day,
@@ -168,11 +178,14 @@ def edit_schedule(schedule_id):
             exclude_id=schedule_id,
         ):
             connection.close()
-            return render_template(
-                "edit.html",
-                item=item,
-                result="Room clash detected.",
-            ), 409
+            return (
+                render_template(
+                    "edit.html",
+                    item=item,
+                    result="Room clash detected.",
+                ),
+                409,
+            )
 
         connection.execute(
             """
@@ -192,9 +205,10 @@ def edit_schedule(schedule_id):
 
     return render_template("edit.html", item=item)
 
+
 @app.route("/delete/<int:schedule_id>", methods=["POST"])
 def delete_schedule(schedule_id):
-    connection = sqlite3.connect("schedule.db")
+    connection = sqlite3.connect(DATABASE)
 
     result = connection.execute(
         "DELETE FROM schedule WHERE id = ?",
@@ -208,6 +222,7 @@ def delete_schedule(schedule_id):
         return "Schedule entry not found.", 404
 
     return redirect("/")
+
 
 @app.route("/availability", methods=["GET", "POST"])
 def availability():
@@ -256,15 +271,15 @@ def add_schedule():
 
     if start_time >= end_time:
         return "Start time must be before end time.", 400
-    
+
     if has_clash(day, start_time, end_time, room):
         return render_template(
             "index.html",
             schedule=get_schedule(),
-            error="Room clash detected. This room is already occupied during that time."
+            error="Room clash detected. This room is already occupied during that time.",
         )
 
-    connection = sqlite3.connect("schedule.db")
+    connection = sqlite3.connect(DATABASE)
 
     connection.execute(
         """
