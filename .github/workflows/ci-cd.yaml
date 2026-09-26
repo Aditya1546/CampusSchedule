@@ -28,3 +28,26 @@ jobs:
 
       - name: Run tests
         run: pytest -v
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Build Docker image
+        run: docker build -t campusschedule .
+
+      - name: Start Docker container
+        run: docker run -d --rm --name campusschedule-ci -p 5000:5000 campusschedule
+
+      - name: Smoke test health endpoint
+        run: |
+          sleep 5
+          curl -f http://localhost:5000/health
+
+      - name: Stop Docker container
+        if: always()
+        run: docker stop campusschedule-ci
