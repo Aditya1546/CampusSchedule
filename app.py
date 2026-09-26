@@ -104,7 +104,7 @@ def home():
         "index.html",
         schedule=schedule,
         commit=COMMIT,
-    )   
+    )
 
 
 @app.route("/api/schedule")
@@ -213,7 +213,7 @@ def edit_schedule(schedule_id):
 
     connection.close()
 
-    return render_template("edit.html", item=item,commit=COMMIT,)
+    return render_template("edit.html", item=item, commit=COMMIT,)
 
 
 @app.route("/delete/<int:schedule_id>", methods=["POST"])

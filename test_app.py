@@ -1,6 +1,7 @@
 import pytest
 import app as app_module
 
+
 @pytest.fixture
 def client(tmp_path, monkeypatch):
     test_db = tmp_path / "test_schedule.db"
