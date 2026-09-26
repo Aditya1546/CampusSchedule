@@ -1,9 +1,11 @@
+import os
 import sqlite3
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, jsonify
 
 app = Flask(__name__)
 DATABASE = "schedule.db"
+COMMIT = os.getenv("RENDER_GIT_COMMIT", "local")[:7]
 
 schedule = [
     {
@@ -98,7 +100,11 @@ def has_clash(day, start_time, end_time, room, exclude_id=None):
 @app.route("/")
 def home():
     schedule = get_schedule()
-    return render_template("index.html", schedule=schedule)
+    return render_template(
+        "index.html",
+        schedule=schedule,
+        commit=COMMIT,
+    )   
 
 
 @app.route("/api/schedule")
@@ -141,6 +147,7 @@ def edit_schedule(schedule_id):
                     "edit.html",
                     item=item,
                     result="All fields are required.",
+                    commit=COMMIT,
                 ),
                 400,
             )
@@ -155,6 +162,7 @@ def edit_schedule(schedule_id):
                     "edit.html",
                     item=item,
                     result="Invalid time format.",
+                    commit=COMMIT,
                 ),
                 400,
             )
@@ -166,6 +174,7 @@ def edit_schedule(schedule_id):
                     "edit.html",
                     item=item,
                     result="Start time must be before end time.",
+                    commit=COMMIT,
                 ),
                 400,
             )
@@ -183,6 +192,7 @@ def edit_schedule(schedule_id):
                     "edit.html",
                     item=item,
                     result="Room clash detected.",
+                    commit=COMMIT,
                 ),
                 409,
             )
@@ -203,7 +213,7 @@ def edit_schedule(schedule_id):
 
     connection.close()
 
-    return render_template("edit.html", item=item)
+    return render_template("edit.html", item=item,commit=COMMIT,)
 
 
 @app.route("/delete/<int:schedule_id>", methods=["POST"])
@@ -250,7 +260,11 @@ def availability():
                 else:
                     result = f"Room {room} is available."
 
-    return render_template("availability.html", result=result)
+    return render_template(
+        "availability.html",
+        result=result,
+        commit=COMMIT,
+    )
 
 
 @app.route("/add", methods=["POST"])
@@ -277,6 +291,7 @@ def add_schedule():
             "index.html",
             schedule=get_schedule(),
             error="Room clash detected. This room is already occupied during that time.",
+            commit=COMMIT,
         )
 
     connection = sqlite3.connect(DATABASE)
